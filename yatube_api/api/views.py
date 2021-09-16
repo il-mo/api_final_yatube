@@ -1,21 +1,16 @@
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from requests import Response
 from rest_framework import permissions, viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.mixins import (
-    CreateModelMixin,
-    DestroyModelMixin,
-    RetrieveModelMixin,
-    UpdateModelMixin,
-)
-from posts.models import Comment, Follow, Group, Post
+
+from posts.models import Follow, Group, Post
 
 from .permissions import IsAuthorOrReadOnlyPermission
 from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
                           PostSerializer)
 
-
 # TODO: дописать perform_create
+
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
@@ -24,9 +19,7 @@ class PostViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
-        group = self.request.data[2][1]
-
-        serializer.save(author=self.request.user, group=group)
+        serializer.save(author=self.request.user)
 
     def perform_update(self, serializer):
         super().perform_update(serializer)
@@ -46,12 +39,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnlyPermission,)
 
     def get_queryset(self):
-        post = get_object_or_404(Post, id=self.kwargs['post_id'])
+        post = get_object_or_404(Post, id=self.kwargs["post_id"])
         new_queryset = post.comments.all()
         return new_queryset
 
     def perform_create(self, serializer):
-        post = get_object_or_404(Post, id=self.kwargs['post_id'])
+        post = get_object_or_404(Post, id=self.kwargs["post_id"])
         serializer.save(author=self.request.user, post=post)
 
     def perform_update(self, serializer):
@@ -66,5 +59,10 @@ class FollowViewSet(viewsets.ModelViewSet):
 
 
     def get_queryset(self):
-        new_queryset = get_object_or_404(Follow, user=self.request.user)
-        return new_queryset
+        users = Follow.objects.filter(user=self.request.user)
+        queryset = users
+        return queryset
+
+    def perform_create(self, serializer):
+        following = get_object_or_404(User, username=self.request.data['following'])
+        serializer.save(user=self.request.user, following=following)
