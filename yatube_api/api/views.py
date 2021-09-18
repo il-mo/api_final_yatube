@@ -1,21 +1,14 @@
-from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, viewsets, status, mixins
-from rest_framework import filters
+from requests import Response
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
-from django_filters.rest_framework import DjangoFilterBackend
 
 from posts.models import Follow, Group, Post
-from rest_framework.response import Response
-from rest_framework.validators import UniqueTogetherValidator
 
 from .permissions import IsAuthorOrReadOnlyPermission
 from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
                           PostSerializer)
-
-
-# TODO: дописать follow_create
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -45,12 +38,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnlyPermission,)
 
     def get_queryset(self):
-        post = get_object_or_404(Post, id=self.kwargs["post_id"])
+        post = get_object_or_404(Post, id=self.kwargs['post_id'])
         new_queryset = post.comments.all()
         return new_queryset
 
     def perform_create(self, serializer):
-        post = get_object_or_404(Post, id=self.kwargs["post_id"])
+        post = get_object_or_404(Post, id=self.kwargs['post_id'])
         serializer.save(author=self.request.user, post=post)
 
     def perform_update(self, serializer):
@@ -78,11 +71,9 @@ class FollowViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         headers = self.get_success_headers(serializer.data)
-
-
         if Follow.objects.filter(
                 user=request.user,
-                following=request.data['following__username']
+                following=self.request.data['following__username']
         ).exist():
-            raise ValidationError('d')
-        return Response(serializer.data, status=status.HTTP_201_CREATED,headers=headers)
+            raise ValidationError('Ups')
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
