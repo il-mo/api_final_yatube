@@ -7,8 +7,12 @@ from rest_framework.pagination import LimitOffsetPagination
 from posts.models import Follow, Group, Post
 
 from .permissions import IsAuthorOrReadOnlyPermission
-from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
-                          PostSerializer)
+from .serializers import (
+    CommentSerializer,
+    FollowSerializer,
+    GroupSerializer,
+    PostSerializer,
+)
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -73,7 +77,9 @@ class FollowViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         if Follow.objects.filter(
                 user=request.user,
-                following=self.request.data['following__username']
+                following=self.request.data['following__username'],
         ).exist():
             raise ValidationError('Ups')
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
