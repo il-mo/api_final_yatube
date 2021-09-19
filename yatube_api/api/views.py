@@ -1,6 +1,6 @@
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from requests import Response
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import filters, permissions, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -69,17 +69,11 @@ class FollowViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        headers = self.get_success_headers(serializer.data)
-        if Follow.objects.filter(
-                user=request.user,
-                following=self.request.data['following__username'],
-        ).exist():
-            raise ValidationError('Ups')
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        if 'following' not in self.request.data:
+            raise ValidationError('Отсутсвуют данные для подписки')
+        following = get_object_or_404(
+            User, username=self.request.data['following']
         )
+        if self.request.user.username == self.request.data['following']:
+            raise ValidationError('Нельзя подписаться на себя')
+        serializer.save(user=self.request.user)
