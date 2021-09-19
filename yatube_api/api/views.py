@@ -71,9 +71,6 @@ class FollowViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         if 'following' not in self.request.data:
             raise ValidationError('Отсутсвуют данные для подписки')
-        following = get_object_or_404(
-            User, username=self.request.data['following']
-        )
         if self.request.user.username == self.request.data['following']:
             raise ValidationError('Нельзя подписаться на себя')
         serializer.save(user=self.request.user)
