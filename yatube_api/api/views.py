@@ -17,12 +17,6 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def perform_update(self, serializer):
-        super().perform_update(serializer)
-
-    def perform_destroy(self, serializer):
-        super().perform_destroy(serializer)
-
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Group.objects.all()
@@ -53,7 +47,6 @@ class FollowViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-
     serializer_class = FollowSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = (filters.SearchFilter,)
