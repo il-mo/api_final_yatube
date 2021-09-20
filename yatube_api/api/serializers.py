@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -42,6 +43,11 @@ class FollowSerializer(serializers.ModelSerializer):
         queryset=User.objects.all(),
     )
 
+    def validate(self, data):
+        if self.context['request'].user == data.get('following'):
+            raise ValidationError('О')
+        return data
+
     class Meta:
         fields = '__all__'
         model = Follow
@@ -51,3 +57,8 @@ class FollowSerializer(serializers.ModelSerializer):
             queryset=Follow.objects.all(), fields=('following', 'user')
         )
     ]
+
+# if 'following' not in self.request.data:
+#     raise ValidationError('Отсутсвуют данные для подписки')
+# if self.request.user.username == self.request.data['following']:
+#     raise ValidationError('Нельзя подписаться на себя')
